@@ -1,5 +1,7 @@
-require "bundler/setup"
-require "stripe_migrant"
+require 'bundler/setup'
+require 'stripe_migrant'
+require 'logger'
+require 'stripe'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
