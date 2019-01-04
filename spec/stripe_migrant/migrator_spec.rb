@@ -1,14 +1,58 @@
 require 'spec_helper'
 
 RSpec.describe StripeMigrant::Migrator do
-  let(:migrator) { described_class.new(log_level: Logger::FATAL) }
+  let(:migrator) do
+    described_class.new(source_key: api_key, target_key: api_key, log_level: Logger::FATAL)
+  end
   let(:api_key) { 'fake_key' }
   subject { migrator }
 
   it { is_expected.to be }
 
+  describe '#cancel_confirmed_subscriptions' do
+    subject { migrator.cancel_confirmed_subscriptions }
+    let(:subscriptions) { [double(:subscription)] }
+    let(:new_subs) { [double(:new_sub)] }
+    let(:sub_instance) do
+      double(:sub_instance, get_all: subscriptions, confirm_all: new_subs, cancel_all: true)
+    end
+
+    before(:each) do
+      allow(StripeMigrant::Subscription).to receive(:new).and_return(sub_instance)
+    end
+
+    it 'retrieves all existing subscriptions' do
+      expect(sub_instance).to receive(:get_all).with(no_args)
+      subject
+    end
+
+    it 'creates a list of confirmed existing subscriptions in destination' do
+      expect(sub_instance).to receive(:confirm_all).with(subscriptions: subscriptions)
+      subject
+    end
+  end
+
+  describe '#get_coupons' do
+    subject { migrator.get_coupons(api_key: api_key) }
+    let(:coupons) { [double(:coupons)] }
+
+    before(:each) { allow(Stripe::Coupon).to receive(:all).and_return(coupons) }
+
+    it { is_expected.to eq(coupons) }
+  end
+
+  describe '#get_customers' do
+    subject { migrator.get_customers(api_key: api_key) }
+    let(:customers) { [double(:customer)] }
+    let(:customers_list) { double(:customers_list, data: customers) }
+
+    before(:each) { allow(Stripe::Customer).to receive(:all).and_return(customers_list) }
+
+    it { is_expected.to eq(customers) }
+  end
+
   describe '#get_plans' do
-    subject { migrator.get_plans(api_key) }
+    subject { migrator.get_plans(api_key: api_key) }
     let(:plans) { [double(:plan)] }
 
     before(:each) { allow(Stripe::Plan).to receive(:all).and_return(plans) }
@@ -17,7 +61,7 @@ RSpec.describe StripeMigrant::Migrator do
   end
 
   describe '#get_products' do
-    subject { migrator.get_products(api_key) }
+    subject { migrator.get_products(api_key: api_key) }
     let(:products) { [double(:product)] }
 
     before(:each) { allow(Stripe::Product).to receive(:all).and_return(products) }
@@ -25,8 +69,83 @@ RSpec.describe StripeMigrant::Migrator do
     it { is_expected.to eq(products) }
   end
 
+  describe '#migrate_subscriptions' do
+    subject { migrator.migrate_subscriptions }
+    let(:subscriptions) { [double(:subscription)] }
+    let(:new_subs) { [double(:new_sub)] }
+    let(:sub_instance) { double(:sub_instance, get_all: subscriptions, create_all: new_subs) }
+
+    before(:each) do
+      allow(StripeMigrant::Subscription).to receive(:new).and_return(sub_instance)
+    end
+
+    it 'retrieves all existing subscriptions' do
+      expect(sub_instance).to receive(:get_all).with(no_args)
+      subject
+    end
+
+    it 'creates all new subscriptions from existing subscriptions' do
+      expect(sub_instance).to receive(:create_all).with(subscriptions: subscriptions)
+      subject
+    end
+  end
+
+  describe '#update_customers' do
+    subject { migrator.update_customers(api_key: api_key, customers: customers) }
+    let(:customers) { [customer] }
+    let(:customer) do
+      double(
+        :customer,
+        id: 'c_1',
+        account_balance: 0,
+        save: true
+      )
+    end
+
+    it { is_expected.to eq(true) }
+  end
+
+  describe '#update_coupons' do
+    subject { migrator.update_coupons(api_key: api_key, coupons: coupons) }
+    let(:coupon) do
+      double(
+        :coupon,
+        id: '1',
+        name: 'name',
+        currency: 'usd',
+        duration: 'forever',
+        duration_in_months: 3,
+        amount_off: nil,
+        percent_off: 25.5,
+        max_redemptions: 1,
+        redeem_by: nil
+      )
+    end
+    let(:coupons) { [coupon] }
+
+    before(:each) do
+      allow(Stripe::Coupon).to receive(:retrieve).and_return(nil)
+    end
+
+    it 'expect Stripe::Coupon to receive correct attributes' do
+      expect(Stripe::Coupon).to receive(:create).with(
+        id:                 coupon.id,
+        name:               coupon.name,
+        currency:           coupon.currency,
+        duration:           coupon.duration,
+        duration_in_months: coupon.duration_in_months,
+        amount_off:         coupon.amount_off,
+        percent_off:        coupon.percent_off,
+        max_redemptions:    coupon.max_redemptions,
+        redeem_by:          coupon.redeem_by
+      )
+      subject
+    end
+  end
+
+
   describe '#update_plans' do
-    subject { migrator.update_plans(plans, api_key) }
+    subject { migrator.update_plans(api_key: api_key, plans: plans) }
     let(:plan) do
       double(
         :plan,
@@ -60,7 +179,7 @@ RSpec.describe StripeMigrant::Migrator do
   end
 
   describe '#update_products' do
-    subject { migrator.update_products(products, api_key) }
+    subject { migrator.update_products(api_key: api_key, products: products) }
     let(:product) do
       double(
         :product,
