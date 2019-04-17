@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe StripeMigrant::Migrator do
@@ -129,20 +131,19 @@ RSpec.describe StripeMigrant::Migrator do
 
     it 'expect Stripe::Coupon to receive correct attributes' do
       expect(Stripe::Coupon).to receive(:create).with(
-        id:                 coupon.id,
-        name:               coupon.name,
-        currency:           coupon.currency,
-        duration:           coupon.duration,
+        id: coupon.id,
+        name: coupon.name,
+        currency: coupon.currency,
+        duration: coupon.duration,
         duration_in_months: coupon.duration_in_months,
-        amount_off:         coupon.amount_off,
-        percent_off:        coupon.percent_off,
-        max_redemptions:    coupon.max_redemptions,
-        redeem_by:          coupon.redeem_by
+        amount_off: coupon.amount_off,
+        percent_off: coupon.percent_off,
+        max_redemptions: coupon.max_redemptions,
+        redeem_by: coupon.redeem_by
       )
       subject
     end
   end
-
 
   describe '#update_plans' do
     subject { migrator.update_plans(api_key: api_key, plans: plans) }
@@ -152,7 +153,7 @@ RSpec.describe StripeMigrant::Migrator do
         id: '1',
         product: 'plan_1',
         nickname: 'nickname',
-        amount:   100,
+        amount: 100,
         currency: 'USD',
         interval: 'month',
         trial_period_days: 14
@@ -166,13 +167,13 @@ RSpec.describe StripeMigrant::Migrator do
 
     it 'expect Stripe::Plan to receive correct attributes' do
       expect(Stripe::Plan).to receive(:create).with(
-        id:                 plan.id,
-        product:            plan.product,
-        nickname:           plan.nickname,
-        amount:             plan.amount,
-        currency:           plan.currency,
-        interval:           plan.interval,
-        trial_period_days:  plan.trial_period_days
+        id: plan.id,
+        product: plan.product,
+        nickname: plan.nickname,
+        amount: plan.amount,
+        currency: plan.currency,
+        interval: plan.interval,
+        trial_period_days: plan.trial_period_days
       )
       subject
     end
@@ -198,11 +199,11 @@ RSpec.describe StripeMigrant::Migrator do
 
     it 'expect Stripe::Product to receive correct attributes' do
       expect(Stripe::Product).to receive(:create).with(
-        id:                   product.id,
-        name:                 product.name,
-        type:                 product.type,
+        id: product.id,
+        name: product.name,
+        type: product.type,
         statement_descriptor: product.statement_descriptor,
-        unit_label:           product.unit_label
+        unit_label: product.unit_label
       )
       subject
     end

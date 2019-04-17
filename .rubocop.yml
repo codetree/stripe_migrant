@@ -1,0 +1,46 @@
+AllCops:
+  TargetRubyVersion: 2.5
+  Exclude:
+    - 'bin/**/*'
+    - 'db/**/*'
+    - 'script/**/*'
+    - 'scratch/**/*'
+    - 'config/spring.rb'
+    - 'node_modules/**/*'
+
+Metrics/BlockLength:
+    Exclude:
+      - 'spec/**/*'
+
+Style/SymbolArray:
+  Description: 'Use %w or %W for array of symbols.'
+  StyleGuide: 'https://github/bbatsov/ruby-style-guide#percent-i'
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Description: 'Missing frozen string literal comment.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#magic-comments-first'
+  Enabled: false
+
+Style/Documentation:
+  Description: 'Missing top-level class documentation comment'
+  Enabled: false
+
+Style/RegexpLiteral:
+  Description: 'Use / / around regular expression'
+  StyleGuide: 'https://github/bbatsov/ruby-style-guide#percent-r'
+  AllowInnerSlashes: true
+  EnforcedStyle: slashes
+  Enabled: true
+  Exclude:
+    - Guardfile
+
+Style/BracesAroundHashParameters:
+    Enabled: false
+
+Metrics/ParameterLists:
+  Max: 4
+  CountKeywordArgs: false
+
+Metrics/LineLength:
+  Max: 100

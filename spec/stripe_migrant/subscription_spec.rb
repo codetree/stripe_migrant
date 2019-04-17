@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe StripeMigrant::Subscription do
@@ -21,7 +23,7 @@ RSpec.describe StripeMigrant::Subscription do
 
     before(:each) { allow(Stripe::Subscription).to receive(:all).and_return(sub_list) }
 
-     it { is_expected.to eq(subscriptions) }
+    it { is_expected.to eq(subscriptions) }
   end
 
   describe '#confirm_all' do
@@ -36,7 +38,7 @@ RSpec.describe StripeMigrant::Subscription do
 
     before(:each) { allow(Stripe::Subscription).to receive(:list).and_return(sub_list) }
 
-     it { is_expected.to eq(subscriptions) }
+    it { is_expected.to eq(subscriptions) }
   end
 
   describe '#create_all' do
@@ -44,16 +46,16 @@ RSpec.describe StripeMigrant::Subscription do
     let(:subscription) do
       double(
         :subscription,
-        id:                   'sub_1',
-        customer:             'cus_1',
-        status:               'active',
-        billing_cycle_anchor: 500000,
-        current_period_end:   900000,
+        id: 'sub_1',
+        customer: 'cus_1',
+        status: 'active',
+        billing_cycle_anchor: 500_000,
+        current_period_end: 900_000,
         cancel_at_period_end: true,
-        discount:             nil,
-        trial_end:            10000,
-        prorate:              false,
-        items:                [double(:item, plan: double(:plan, id: 'plan_1'))],
+        discount: nil,
+        trial_end: 10_000,
+        prorate: false,
+        items: [double(:item, plan: double(:plan, id: 'plan_1'))]
       )
     end
     let(:subscriptions) { [subscription] }

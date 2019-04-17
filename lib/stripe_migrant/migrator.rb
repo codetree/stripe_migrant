@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require 'logger'
 
 module StripeMigrant
   class Migrator
-
     def initialize(source_key:, target_key:, output_file: STDOUT, log_level: Logger::DEBUG)
       @source_key = source_key
       @target_key = target_key
@@ -17,7 +18,7 @@ module StripeMigrant
 
     def get_coupons(api_key:, limit: 100)
       Stripe.api_key = api_key
-      Stripe::Coupon.all({ limit: limit })
+      Stripe::Coupon.all(limit: limit)
     end
 
     def get_customers(api_key:, starting_after: nil)
@@ -41,12 +42,12 @@ module StripeMigrant
 
     def get_products(api_key:, limit: 100)
       Stripe.api_key = api_key
-      Stripe::Product.all({ limit: limit })
+      Stripe::Product.all(limit: limit)
     end
 
     def get_plans(api_key:, limit: 100)
       Stripe.api_key = api_key
-      Stripe::Plan.all({ limit: limit })
+      Stripe::Plan.all(limit: limit)
     end
 
     def cancel_confirmed_subscriptions
@@ -71,7 +72,7 @@ module StripeMigrant
           @logger.info "Retrieving #{c.id}..."
           coupon = Stripe::Coupon.retrieve(c.id)
         rescue Stripe::InvalidRequestError => e
-          unless e.message.include?("No such coupon")
+          unless e.message.include?('No such coupon')
             @logger.debug e.inspect
             rase e
           end
@@ -81,21 +82,21 @@ module StripeMigrant
           @logger.info "Doesn't exist.  Creating #{c.id}..."
           begin
             Stripe::Coupon.create(
-              id:                 c.id,
-              name:               c.name,
-              currency:           c.currency,
-              duration:           c.duration,
+              id: c.id,
+              name: c.name,
+              currency: c.currency,
+              duration: c.duration,
               duration_in_months: c.duration_in_months,
-              amount_off:         c.amount_off,
-              percent_off:        c.percent_off,
-              max_redemptions:    c.max_redemptions,
-              redeem_by:          c.redeem_by
+              amount_off: c.amount_off,
+              percent_off: c.percent_off,
+              max_redemptions: c.max_redemptions,
+              redeem_by: c.redeem_by
             )
-          rescue Exception => e
+          rescue StandardError => e
             @logger.info e.inspect
           end
         else
-          @logger.info "Already exists. Skipping."
+          @logger.info 'Already exists. Skipping.'
         end
       end
     end
@@ -105,15 +106,15 @@ module StripeMigrant
       Stripe.api_key = api_key
 
       customers.each do |c|
-        if c.account_balance != 0
-          @logger.info "Migrating account balance for #{c.id} of #{c.account_balance}"
+        next unless c.account_balance != 0
 
-          next if read_only
+        @logger.info "Migrating account balance for #{c.id} of #{c.account_balance}"
 
-          cu = Stripe::Customer.retrieve(c.id)
-          cu.account_balance = c.account_balance
-          cu.save
-        end
+        next if read_only
+
+        cu = Stripe::Customer.retrieve(c.id)
+        cu.account_balance = c.account_balance
+        cu.save
       end
       true
     end
@@ -127,7 +128,7 @@ module StripeMigrant
           @logger.info "Retrieving #{p.id}..."
           product = Stripe::Product.retrieve(p.id)
         rescue Stripe::InvalidRequestError => e
-          unless e.message.include?("No such product")
+          unless e.message.include?('No such product')
             @logger.debug e.inspect
             rase e
           end
@@ -137,17 +138,17 @@ module StripeMigrant
           @logger.info "Doesn't exist.  Creating #{p.id}..."
           begin
             Stripe::Product.create(
-              id:     p.id,
-              name:   p.name,
-              type:   p.type,
+              id: p.id,
+              name: p.name,
+              type: p.type,
               statement_descriptor: p.statement_descriptor,
               unit_label: p.unit_label
             )
-          rescue Exception => e
+          rescue StandardError => e
             @logger.info e.inspect
           end
         else
-          @logger.info "Already exists. Skipping."
+          @logger.info 'Already exists. Skipping.'
         end
       end
     end
@@ -161,7 +162,7 @@ module StripeMigrant
           @logger.info "Retrieving #{p.id}..."
           plan = Stripe::Plan.retrieve(p.id)
         rescue Stripe::InvalidRequestError => e
-          unless e.message.include?("No such plan")
+          unless e.message.include?('No such plan')
             @logger.debug e.inspect
             raise e
           end
@@ -171,20 +172,20 @@ module StripeMigrant
           @logger.info "Doesn't exist.  Creating #{p.id}..."
           begin
             Stripe::Plan.create(
-              id:                 p.id,
-              product:            p.product,
-              nickname:           p.nickname,
-              amount:             p.amount,
-              currency:           p.currency,
-              interval:           p.interval,
-              trial_period_days:  p.trial_period_days
+              id: p.id,
+              product: p.product,
+              nickname: p.nickname,
+              amount: p.amount,
+              currency: p.currency,
+              interval: p.interval,
+              trial_period_days: p.trial_period_days
             )
-          rescue Exception => e
+          rescue StandardError => e
             @logger.debug e.inspect
             raise e
           end
         else
-          @logger.info "Already exists. Skipping."
+          @logger.info 'Already exists. Skipping.'
         end
       end
     end
